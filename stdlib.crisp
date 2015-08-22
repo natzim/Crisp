@@ -1,0 +1,137 @@
+; Atoms
+(def {nil} {})
+(def {true} 1)
+(def {false} 0)
+
+; Easier syntax for creating functions
+(def {fun} (\ {Function Body} {
+    def (head Function) (\ (tail Function) Body)
+}))
+
+; Logical operators
+(fun {not X} {- 1 X})
+(fun {or X Y} {+ X Y})
+(fun {and X Y} {* X Y})
+
+(fun {unpack Function List} {
+    eval (join (list Function) List)
+})
+
+(fun {pack Function & Arguments} {Function Arguments})
+
+(def {curry} unpack)
+(def {uncurry} pack)
+
+; Do some things and return the last result
+(fun {do & List} {
+    if (== List nil)
+        {nil}
+        {last List}
+})
+
+; Create a new scope
+(fun {let Body} {
+    ((\ {_} Body) ())
+})
+
+; Get the length of a list
+(fun {len List} {
+    if (== List nil)
+        {0}
+        {+ 1 (len (tail List))}
+})
+
+; Get the first element of a list
+(fun {first List} {
+    eval (head List)
+})
+
+; Get the nth element of a list
+(fun {nth N List} {
+    if (== N 0)
+        {first List}
+        {nth (- N 1) (tail List)}
+})
+
+; Get the last element of a list
+(fun {last List} {
+    nth (- (len List) 1) List
+})
+
+; Take n items from the front
+(fun {take N List} {
+    if (== N 0)
+        {nil}
+        {join (head List) (take (- N 1) (tail List))}
+})
+
+; Drop n items from the front
+(fun {drop N List} {
+    if (== N 0)
+        {List}
+        {drop (- N 1) (tail List)}
+})
+
+; Split list into 2 lists at index
+(fun {split N List} {
+    list (take N List) (drop N List)
+})
+
+; Does an item exist in a list
+(fun {in Item List} {
+    if (== List nil)
+        {false}
+        {if (== Item (first List)) {true} {in Item (tail List)}}
+})
+
+; Apply function to every element in a list
+(fun {map Function List} {
+    if (== List nil)
+        {nil}
+        {join (list (Function (first List))) (map Function (tail List))}
+})
+
+; Apply filter to a list
+(fun {filter Function List} {
+    if (== List nil)
+        {nil}
+        {join
+            (if (Function (first List))
+                {head List}
+                {nil}
+            )
+            (filter Function (tail List))
+        }
+})
+
+; Fold left
+(fun {foldl Function Z List} {
+    if (== List nil)
+        {Z}
+        {foldl Function (Function Z (first List)) (tail List)}
+})
+
+; Get the sum of a list
+(fun {sum List} {
+    foldl + 0 List
+})
+
+; Get the product of a list
+(fun {product List} {
+    foldl * 1 List
+})
+
+(fun {select & CS} {
+    if (== CS nil)
+        {error "No selection found"}
+        {if (first (first CS))
+            {nth 1 (first CS)}
+            {unpack select (tail CS)}}
+})
+
+(fun {case X & CS} {
+    if (== CS nil)
+        {error "No case found"}
+        {if (== X (first (first CS))) {nth 1 (first CS)} {
+            unpack case (join (list X) (tail CS))}}
+})
